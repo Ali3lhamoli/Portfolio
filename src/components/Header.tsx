@@ -22,7 +22,7 @@ const Header = () => {
 
   const handleCVDownload = () => {
     // Create a blob with CV content or link to actual CV file
-    const cvUrl = '/public/Ali_Alhamoli(CV).pdf';
+    const cvUrl = '/Ali_Alhamoli(CV).pdf';
     const link = document.createElement('a');
     link.href = cvUrl;
     // link.download = 'Ali_Al-Hamoli_CV.pdf';
