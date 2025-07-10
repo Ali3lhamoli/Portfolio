@@ -1,46 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { Menu, X, Download, MessageCircle, Github, Linkedin, Mail, Sun, Moon } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import React, { useState, useEffect } from "react";
+import { Menu, X, Download, MessageCircle, Sun, Moon } from "lucide-react";
+import { useTheme } from "../contexts/ThemeContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
+  const [activeSection, setActiveSection] = useState("home");
   const { isDark, toggleTheme } = useTheme();
 
   const navigationItems = [
-    { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About' },
-    { id: 'experience', label: 'Experience' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'skills', label: 'Skills' },
-    { id: 'contact', label: 'Contact' }
+    { id: "home", label: "Home" },
+    { id: "about", label: "About" },
+    { id: "experience", label: "Experience" },
+    { id: "projects", label: "Projects" },
+    { id: "skills", label: "Skills" },
+    { id: "contact", label: "Contact" },
   ];
 
   const handleWhatsApp = () => {
-    window.open('https://wa.me/201151915789', '_blank');
+    window.open("https://wa.me/201151915789", "_blank");
   };
 
   const handleCVDownload = () => {
-    // Create a blob with CV content or link to actual CV file
-    const cvUrl = '/Ali_Alhamoli(CV).pdf';
-    const link = document.createElement('a');
+    const cvUrl = "/Ali_Alhamoli(CV).pdf";
+    const link = document.createElement("a");
     link.href = cvUrl;
-    // link.download = 'Ali_Al-Hamoli_CV.pdf';
     link.click();
   };
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      element.scrollIntoView({ behavior: "smooth" });
     }
     setIsMenuOpen(false);
   };
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = navigationItems.map(item => item.id);
-      const currentSection = sections.find(section => {
+      const sections = navigationItems.map((item) => item.id);
+      const currentSection = sections.find((section) => {
         const element = document.getElementById(section);
         if (element) {
           const rect = element.getBoundingClientRect();
@@ -53,8 +51,8 @@ const Header = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
@@ -62,10 +60,14 @@ const Header = () => {
       <nav className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">AA</span>
-            </div>
-            <span className="font-bold text-xl text-gray-800 dark:text-white transition-colors duration-300">Ali Al-Hamoli</span>
+            <img
+              className="rounded-full w-8 h-8 bg-gradient-to-r"
+              src="/ali_logo.png"
+              alt="AA"
+            />{" "}
+            <span className="font-bold text-xl text-gray-900 dark:text-gray-100 transition-colors duration-300">
+              Ali Al-Hamoli
+            </span>
           </div>
 
           {/* Desktop Navigation */}
@@ -74,8 +76,10 @@ const Header = () => {
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
-                className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-500 ${
-                  activeSection === item.id ? 'text-cyan-500' : 'text-gray-600 dark:text-gray-300'
+                className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
+                  activeSection === item.id
+                    ? "text-cyan-400"
+                    : "text-gray-500 dark:text-gray-400"
                 }`}
               >
                 {item.label}
@@ -87,20 +91,22 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-all duration-200"
+              className="p-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700 transition-all duration-200"
             >
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
+
             <button
               onClick={handleWhatsApp}
-              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <MessageCircle size={16} />
               <span className="text-sm">WhatsApp</span>
             </button>
+
             <button
               onClick={handleCVDownload}
-              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-lg hover:from-cyan-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-lg hover:from-cyan-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <Download size={16} />
               <span className="text-sm">CV</span>
@@ -126,20 +132,20 @@ const Header = () => {
                   onClick={() => scrollToSection(item.id)}
                   className={`text-left py-2 px-4 rounded-lg transition-colors duration-200 ${
                     activeSection === item.id
-                      ? 'bg-cyan-100 dark:bg-gray-900 text-cyan-600 dark:text-cyan-400'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900'
+                      ? "bg-cyan-100 dark:bg-gray-800 text-cyan-600 dark:text-cyan-400"
+                      : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                   }`}
                 >
                   {item.label}
                 </button>
               ))}
-              <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200">
+              <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   onClick={toggleTheme}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors duration-200"
+                  className="flex items-center space-x-2 px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"
                 >
                   {isDark ? <Sun size={16} /> : <Moon size={16} />}
-                  <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+                  <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
                 </button>
                 <button
                   onClick={handleWhatsApp}
