@@ -15,7 +15,7 @@ const Projects = () => {
         'Designed RESTful APIs for seamless client communication'
       ],
       hasWebsite: true,
-      websiteUrl: '#',
+      websiteUrl: 'https://oms.pntexpress.com/',
       hasGithub: false,
       githubUrl: ''
     },
@@ -31,7 +31,7 @@ const Projects = () => {
         'Focused on scalability and performance optimization'
       ],
       hasWebsite: true,
-      websiteUrl: '#',
+      websiteUrl: 'https://abtalna.dynootech.com/',
       hasGithub: false,
       githubUrl: ''
     },
@@ -128,16 +128,21 @@ const Projects = () => {
                   </div>
                   <div className="flex space-x-2">
                     {project.hasWebsite && (
-                      <button className="p-2 bg-gradient-to-r from-cyan-100 to-purple-100 dark:from-cyan-900/30 dark:to-purple-900/30 text-cyan-600 dark:text-cyan-400 rounded-lg hover:from-cyan-200 hover:to-purple-200 dark:hover:from-cyan-800/40 dark:hover:to-purple-800/40 transition-all duration-300">
+                      <a
+                        href={project.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 bg-gradient-to-r from-cyan-100 to-purple-100 dark:from-cyan-900/30 dark:to-purple-900/30 text-cyan-600 dark:text-cyan-400 rounded-lg hover:from-cyan-200 hover:to-purple-200 dark:hover:from-cyan-800/40 dark:hover:to-purple-800/40 transition-all duration-300"
+                      >
                         <ExternalLink size={16} />
-                      </button>
+                      </a>
                     )}
                     {project.hasGithub && (
                       <a
                         href={project.githubUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-300"
+                        className="p-2 bg-gradient-to-r from-cyan-100 to-purple-100 dark:from-cyan-900/30 dark:to-purple-900/30 text-cyan-600 dark:text-cyan-400 rounded-lg hover:from-cyan-200 hover:to-purple-200 dark:hover:from-cyan-800/40 dark:hover:to-purple-800/40 transition-all duration-300"
                       >
                         <Github size={16} />
                       </a>
