@@ -9,7 +9,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-gray-900 dark:bg-black text-white py-12 transition-colors duration-300">
+    <footer className="bg-gray-900 py-12 transition-colors duration-300">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
@@ -19,7 +19,7 @@ const Footer = () => {
                 <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-sm">AA</span>
                 </div>
-                <span className="font-bold text-xl">Ali Al-Hamoli</span>
+                <span className="font-bold text-xl text-white">Ali Al-Hamoli</span>
               </div>
               <p className="text-gray-300 mb-4">
                 Backend Developer passionate about creating robust, scalable applications 

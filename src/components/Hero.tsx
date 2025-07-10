@@ -30,7 +30,7 @@ const Hero = () => {
       <div className="container mx-auto px-4 relative z-10 flex flex-col min-h-screen">
         {/* Content positioned at the bottom */}
         <div className="max-w-4xl mx-auto text-center pb-20 pt-[60vh] flex-1 flex flex-col justify-end">
-          <div className="mb-8">
+          <div className="mt-20">
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-2xl">
               Ali Al-Hamoli
             </h1>
@@ -53,7 +53,7 @@ const Hero = () => {
             </div>
           </div>
 
-          <div className="max-w-3xl mx-auto mb-8 bg-black/90 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+          <div className="max-w-3xl mx-auto mb-8 backdrop-blur-md rounded-2xl p-6">
             <p className="text-lg text-gray-100 leading-relaxed">
               Driven Backend Developer with a Bachelor's in Communication & Computers Engineering. 
               Aspiring to evolve into a Software Engineer role—actively involved in architectural design, 
@@ -91,8 +91,6 @@ const Hero = () => {
           </div>
         </div>
         
-        {/* Extended black background section */}
-        <div className="bg-black w-full h-32"></div>
       </div>
     </section>
   );
