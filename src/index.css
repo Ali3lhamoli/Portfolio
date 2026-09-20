@@ -15,7 +15,7 @@
     --c-raised: 30 30 30;
     --c-ink: 243 239 228;
     --c-muted: 140 140 136;
-    --c-faint: 107 107 100;
+    --c-faint: 125 125 118;
     --c-line: 243 239 228;
     --c-accent: 45 212 191;
     --c-marker: 242 199 68;
@@ -31,11 +31,11 @@
     --c-raised: 241 239 232;
     --c-ink: 16 16 16;
     --c-muted: 92 92 87;
-    --c-faint: 117 117 110;
+    --c-faint: 108 108 102;
     --c-line: 16 16 16;
     --c-accent: 15 111 100;
     --c-marker: 242 199 68;
-    --c-ember: 225 77 31;
+    --c-ember: 186 64 19;
 
     --grid-dot: 16 16 16;
     --grid-alpha: 0.08;
@@ -102,8 +102,87 @@
     background-repeat: no-repeat;
   }
 
+
+  /* Filled highlight for phrases inside body copy.
+     box-decoration-break keeps the highlight continuous when a phrase
+     wraps across lines instead of drawing a box per fragment. */
+  .marker-fill {
+    background-color: rgb(var(--c-marker) / 0.2);
+    padding: 0.1em 0.2em;
+    margin: 0 -0.06em;
+    border-radius: 0.2em;
+    color: inherit;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
   /* Hairline rule used between index rows */
   .rule {
     @apply border-line/15;
+  }
+
+  /*
+    Above-the-fold entrance, in CSS rather than JavaScript.
+    The hero headline is the LCP element, so it must not depend on
+    framer-motion's lazily loaded feature bundle to become visible.
+    `both` fill means the reduced-motion override in @layer base (which
+    collapses the duration) lands on the finished state.
+  */
+  .rise {
+    animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--rise-delay, 0ms);
+  }
+
+  .rise-in {
+    animation: rise-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--rise-delay, 0ms);
+  }
+
+  /*
+    Scroll reveal. The hidden state is scoped to `html.js` (set in main.tsx)
+    so content is never hidden when JavaScript is unavailable.
+  */
+  .js .reveal {
+    opacity: 0;
+    transform: translateY(1.5rem);
+    transition:
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--rise-delay, 0ms);
+  }
+
+  .js .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .js .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

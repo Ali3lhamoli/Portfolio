@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'framer-motion';
+import type { CSSProperties } from 'react';
 import { ArrowUpRight, Download, Github, Linkedin, Mail, MessageCircle } from 'lucide-react';
 import { profile } from '../../data/profile';
 
@@ -9,20 +9,21 @@ const icons = {
   whatsapp: MessageCircle,
 } as const;
 
-export default function Hero() {
-  const reduced = useReducedMotion();
-  const { headline, eyebrow, tagline, contact, socials } = profile;
+/** Stagger helper — drives the CSS `.rise` animation delay. */
+const delay = (step: number) => ({ '--rise-delay': `${step * 80}ms` }) as CSSProperties;
 
-  // Staggered entrance for the headline lines (above the fold, so this runs
-  // on mount rather than on scroll).
-  const rise = (i: number) =>
-    reduced
-      ? {}
-      : {
-          initial: { opacity: 0, y: 28 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.8, delay: 0.08 * i, ease: [0.22, 1, 0.36, 1] as const },
-        };
+/**
+ * Hero. The entrance is pure CSS (see `.rise` in index.css) rather than
+ * framer-motion: this is the LCP content, so it must render and animate
+ * without waiting on the lazily loaded animation bundle.
+ *
+ * Structure follows the bahaa-atia reference — bracketed monospace eyebrow,
+ * oversized display headline with one highlighted phrase — warmed up with a
+ * portrait and real contact actions.
+ */
+export default function Hero() {
+  const { headline, eyebrow, tagline, contact, socials } = profile;
+  const lineCount = headline.lines.length;
 
   return (
     <section
@@ -33,50 +34,52 @@ export default function Hero() {
       <div className="mx-auto grid w-full max-w-shell items-center gap-14 lg:grid-cols-[1.4fr_1fr] lg:gap-16">
         {/* ------------------------------------------------------ copy */}
         <div>
-          <motion.p
-            {...rise(0)}
-            className="mb-7 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-eyebrow uppercase text-muted"
+          <p
+            style={delay(0)}
+            className="rise mb-7 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-eyebrow uppercase text-muted"
           >
             <span aria-hidden="true" className="text-faint">
               [
             </span>
+            {/* The separator trails its own item so a wrap never starts a
+                line with a lone middot. */}
             {eyebrow.map((part, i) => (
               <span key={part} className="flex items-center gap-2">
-                {i > 0 && (
+                {part}
+                {i < eyebrow.length - 1 && (
                   <span aria-hidden="true" className="text-faint">
                     ·
                   </span>
                 )}
-                {part}
               </span>
             ))}
             <span aria-hidden="true" className="text-faint">
               ]
             </span>
-          </motion.p>
+          </p>
 
           <h1 id="hero-heading" className="font-display text-hero font-semibold text-ink">
             {headline.lines.map((line, i) => (
-              <motion.span key={line} {...rise(i + 1)} className="block">
+              <span key={line} style={delay(i + 1)} className="rise block">
                 {line}
-              </motion.span>
+              </span>
             ))}
-            <motion.span {...rise(headline.lines.length + 1)} className="block">
+            <span style={delay(lineCount + 1)} className="rise block">
               <span className="marker px-1">{headline.marker}</span>
-            </motion.span>
+            </span>
           </h1>
 
-          <motion.p
-            {...rise(headline.lines.length + 2)}
-            className="mt-8 max-w-prose text-base leading-relaxed text-muted sm:text-lg"
+          <p
+            style={delay(lineCount + 2)}
+            className="rise mt-8 max-w-prose text-base leading-relaxed text-muted sm:text-lg"
           >
             {tagline}
-          </motion.p>
+          </p>
 
           {/* CTAs */}
-          <motion.div
-            {...rise(headline.lines.length + 3)}
-            className="mt-10 flex flex-wrap items-center gap-3"
+          <div
+            style={delay(lineCount + 3)}
+            className="rise mt-10 flex flex-wrap items-center gap-3"
           >
             <a
               href={contact.whatsapp}
@@ -102,21 +105,22 @@ export default function Hero() {
               <Download size={15} aria-hidden="true" />
               Résumé
             </a>
-          </motion.div>
+          </div>
 
           {/* Socials */}
-          <motion.ul
-            {...rise(headline.lines.length + 4)}
-            className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line/10 pt-7"
+          <ul
+            style={delay(lineCount + 4)}
+            className="rise mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line/10 pt-7"
           >
             {socials.map((social) => {
               const Icon = icons[social.icon];
+              const external = social.href.startsWith('http');
               return (
                 <li key={social.label}>
                   <a
                     href={social.href}
-                    target={social.href.startsWith('http') ? '_blank' : undefined}
-                    rel={social.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                    target={external ? '_blank' : undefined}
+                    rel={external ? 'noopener noreferrer' : undefined}
                     className="group inline-flex items-center gap-2 font-mono text-eyebrow uppercase text-muted transition-colors duration-200 hover:text-ink"
                   >
                     <Icon size={14} aria-hidden="true" />
@@ -130,16 +134,11 @@ export default function Hero() {
                 </li>
               );
             })}
-          </motion.ul>
+          </ul>
         </div>
 
         {/* -------------------------------------------------- portrait */}
-        <motion.div
-          initial={reduced ? undefined : { opacity: 0, scale: 0.97 }}
-          animate={reduced ? undefined : { opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto w-full max-w-sm lg:max-w-none"
-        >
+        <div style={delay(3)} className="rise-in mx-auto w-full max-w-sm lg:max-w-none">
           {/*
             The photograph is a low-key shot that only reads against black, so
             the frame stays dark in both themes rather than following the theme
@@ -167,7 +166,7 @@ export default function Hero() {
               </span>
             </figcaption>
           </figure>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

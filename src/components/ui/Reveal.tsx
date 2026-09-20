@@ -1,5 +1,5 @@
-import { motion, useReducedMotion } from 'framer-motion';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 type RevealProps = {
   children: ReactNode;
@@ -10,29 +10,58 @@ type RevealProps = {
 };
 
 /**
- * Scroll-triggered fade + rise, the motion signature of both reference sites.
- * Honours `prefers-reduced-motion` by rendering the content statically.
+ * Scroll-triggered fade + rise — the shared motion signature of both
+ * reference sites.
+ *
+ * Deliberately CSS + IntersectionObserver rather than framer-motion: this
+ * wraps essentially all page content, so it must not be able to leave the
+ * page blank while an animation bundle loads (or if it never does). The
+ * hidden state is scoped to `html.js`, so with JavaScript unavailable the
+ * content simply renders. `prefers-reduced-motion` is handled in index.css.
  */
-export default function Reveal({ children, step = 0, className, as = 'div' }: RevealProps) {
-  const reduced = useReducedMotion();
-  const Tag = motion[as];
+export default function Reveal({ children, step = 0, className = '', as = 'div' }: RevealProps) {
+  const ref = useRef<HTMLElement>(null);
+  const [visible, setVisible] = useState(false);
 
-  if (reduced) {
-    const Plain = as;
-    return <Plain className={className}>{children}</Plain>;
-  }
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    if (typeof IntersectionObserver === 'undefined') {
+      setVisible(true);
+      return;
+    }
+
+    // Reveal anything already on screen straight away. IntersectionObserver
+    // callbacks do not fire while a tab is in the background, so without this
+    // a page opened in a background tab would sit blank until it is focused.
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      setVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '0px 0px -8% 0px', threshold: 0 },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const Tag = as as 'div';
 
   return (
     <Tag
-      className={className}
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-12% 0px -8% 0px' }}
-      transition={{
-        duration: 0.7,
-        delay: step * 0.07,
-        ease: [0.22, 1, 0.36, 1],
-      }}
+      ref={ref as React.Ref<HTMLDivElement>}
+      style={{ '--rise-delay': `${step * 70}ms` } as CSSProperties}
+      className={`reveal ${visible ? 'is-visible' : ''} ${className}`.trim()}
     >
       {children}
     </Tag>

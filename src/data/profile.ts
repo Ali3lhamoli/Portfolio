@@ -61,6 +61,17 @@ export const profile = {
     'Proven track record of delivering scalable AI-powered solutions, conversational workflows, and enterprise-grade platforms in fast-paced startup environments.',
   ],
 
+  /**
+   * Phrases in `summary` that get the highlighter treatment. These are
+   * matched against the text above — they never replace or reword it.
+   */
+  summaryHighlights: [
+    'complete software lifecycle',
+    'complex payment gateways',
+    'Claude Code, Cursor, GitHub Copilot',
+    'enterprise-grade platforms',
+  ],
+
   contact: {
     email: 'alialhamoli475@gmail.com',
     phoneDisplay: '0115 191 5789',

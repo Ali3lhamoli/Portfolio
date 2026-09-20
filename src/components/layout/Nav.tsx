@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import { Download, Menu, Moon, Sun, X } from 'lucide-react';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '../../contexts/theme';
 import { profile } from '../../data/profile';
 
 /**
@@ -85,7 +85,7 @@ export default function Nav() {
                   >
                     {item.label}
                     {isActive && (
-                      <motion.span
+                      <m.span
                         layoutId="nav-underline"
                         className="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-marker"
                         transition={
@@ -137,7 +137,7 @@ export default function Nav() {
         {/* Mobile sheet */}
         <AnimatePresence initial={false}>
           {open && (
-            <motion.div
+            <m.div
               id="mobile-nav"
               initial={reduced ? undefined : { height: 0, opacity: 0 }}
               animate={reduced ? undefined : { height: 'auto', opacity: 1 }}
@@ -172,7 +172,7 @@ export default function Nav() {
                   </a>
                 </li>
               </ul>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </nav>
