@@ -1,3 +1,110 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ==========================================================================
+   Design tokens — single source of truth for both themes.
+   Values are space-separated RGB channels so Tailwind opacity modifiers
+   (e.g. text-ink/70) keep working. Dark is the default theme; `.light` on
+   <html> opts into the warm-paper theme.
+   ========================================================================== */
+@layer base {
+  :root {
+    --c-bg: 14 14 14;
+    --c-surface: 22 22 22;
+    --c-raised: 30 30 30;
+    --c-ink: 243 239 228;
+    --c-muted: 140 140 136;
+    --c-faint: 107 107 100;
+    --c-line: 243 239 228;
+    --c-accent: 45 212 191;
+    --c-marker: 242 199 68;
+    --c-ember: 255 107 61;
+
+    --grid-dot: 243 239 228;
+    --grid-alpha: 0.07;
+  }
+
+  :root.light {
+    --c-bg: 247 246 241;
+    --c-surface: 255 255 255;
+    --c-raised: 241 239 232;
+    --c-ink: 16 16 16;
+    --c-muted: 92 92 87;
+    --c-faint: 117 117 110;
+    --c-line: 16 16 16;
+    --c-accent: 15 111 100;
+    --c-marker: 242 199 68;
+    --c-ember: 225 77 31;
+
+    --grid-dot: 16 16 16;
+    --grid-alpha: 0.08;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  /* Fixed nav clearance for anchor jumps */
+  section[id] {
+    scroll-margin-top: 5.5rem;
+  }
+
+  ::selection {
+    background-color: rgb(var(--c-marker) / 0.85);
+    color: #101010;
+  }
+
+  /* Visible, consistent keyboard focus everywhere */
+  :focus-visible {
+    outline: 2px solid rgb(var(--c-accent));
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Respect users who ask for less motion */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Dot-grid texture — CSS only, no image payload (ref: bahaa-atia) */
+  .dot-grid {
+    background-image: radial-gradient(
+      rgb(var(--grid-dot) / var(--grid-alpha)) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+
+  /* Marker highlight behind a phrase (ref: bahaa-atia) */
+  .marker {
+    background-image: linear-gradient(
+      to top,
+      rgb(var(--c-marker) / 0.5) 0 36%,
+      transparent 36%
+    );
+    background-repeat: no-repeat;
+  }
+
+  /* Hairline rule used between index rows */
+  .rule {
+    @apply border-line/15;
+  }
+}

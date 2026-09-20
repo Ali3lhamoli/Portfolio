@@ -5,56 +5,37 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Enhanced dark mode colors
-        'dark-bg': '#000000',
-        'dark-surface': '#111111',
-        'dark-card': '#1a1a1a',
-        'dark-border': '#333333',
-        primary: {
-          50: '#ecfeff',
-          100: '#cffafe',
-          200: '#a5f3fc',
-          300: '#67e8f9',
-          400: '#22d3ee',
-          500: '#06b6d4',
-          600: '#0891b2',
-          700: '#0e7490',
-          800: '#155e75',
-          900: '#164e63',
-        },
-        secondary: {
-          50: '#faf5ff',
-          100: '#f3e8ff',
-          200: '#e9d5ff',
-          300: '#d8b4fe',
-          400: '#c084fc',
-          500: '#a855f7',
-          600: '#9333ea',
-          700: '#7c3aed',
-          800: '#6b21a8',
-          900: '#581c87',
-        }
+        bg: 'rgb(var(--c-bg) / <alpha-value>)',
+        surface: 'rgb(var(--c-surface) / <alpha-value>)',
+        raised: 'rgb(var(--c-raised) / <alpha-value>)',
+        ink: 'rgb(var(--c-ink) / <alpha-value>)',
+        muted: 'rgb(var(--c-muted) / <alpha-value>)',
+        faint: 'rgb(var(--c-faint) / <alpha-value>)',
+        line: 'rgb(var(--c-line) / <alpha-value>)',
+        accent: 'rgb(var(--c-accent) / <alpha-value>)',
+        marker: 'rgb(var(--c-marker) / <alpha-value>)',
+        ember: 'rgb(var(--c-ember) / <alpha-value>)',
       },
-      animation: {
-        'gradient': 'gradient 8s linear infinite',
-        'float': 'float 6s ease-in-out infinite',
+      fontFamily: {
+        display: ['Archivo', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
-      keyframes: {
-        gradient: {
-          '0%, 100%': {
-            'background-size': '200% 200%',
-            'background-position': 'left center'
-          },
-          '50%': {
-            'background-size': '200% 200%',
-            'background-position': 'right center'
-          },
-        },
-        float: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-10px)' },
-        }
-      }
+      fontSize: {
+        // Fluid scale — the hero can never overflow a small viewport
+        eyebrow: ['0.6875rem', { lineHeight: '1', letterSpacing: '0.14em' }],
+        label: ['0.75rem', { lineHeight: '1.2', letterSpacing: '0.1em' }],
+        hero: ['clamp(2.5rem, 8.5vw, 6rem)', { lineHeight: '0.95', letterSpacing: '-0.03em' }],
+        section: ['clamp(1.75rem, 4vw, 2.75rem)', { lineHeight: '1.05', letterSpacing: '-0.02em' }],
+        index: ['clamp(1.6rem, 4.5vw, 3rem)', { lineHeight: '1.05', letterSpacing: '-0.025em' }],
+      },
+      maxWidth: {
+        shell: '80rem',
+        prose: '38rem',
+      },
+      transitionTimingFunction: {
+        editorial: 'cubic-bezier(0.22, 1, 0.36, 1)',
+      },
     },
   },
   plugins: [],
