@@ -63,29 +63,43 @@ const aboutCrop = () =>
   sharp(ABOUT_SRC).extract({ left: 0, top: aboutTop, width: aboutW, height: aboutH });
 
 /*
-  The About portrait now takes a full half of the layout, rendering up to
-  ~600 CSS px instead of the 288px it had when it sat in a narrow rail. 640px
-  no longer covers it, so this goes to 1100: sharp at 1100 on a standard
-  display and at 550 CSS px on a 2x one.
+  The About portrait takes a full half of the layout, rendering up to 576 CSS
+  px. Two widths per layer let the browser pick against `sizes`:
 
-  Still one size per layer rather than a srcSet pair — a 1x/2x set at this
-  scale ran to roughly 700KB across the two layers, which is not a reasonable
-  price for a decorative hover.
+    640w   covers a standard display (576 CSS px) and a 2x phone
+    1280w  covers a 2x desktop (1152 device px) with headroom
+
+  This is both sharper and lighter than the single 1100px file it replaces:
+  a standard display now pulls ~95KB across both layers instead of 265KB,
+  while a 2x display gets the detail it can actually resolve.
+
+  Quality steps down slightly at 2x, where compression artefacts are far
+  below the perceptible threshold.
 */
-const ABOUT_W = 1100;
+const ABOUT_SIZES = [
+  { width: 640, suffix: '', colour: 76, grey: 78 },
+  { width: 1280, suffix: '@2x', colour: 72, grey: 74 },
+];
 
-const colour = await aboutCrop()
-  .resize({ width: ABOUT_W })
-  .webp({ quality: 74, effort: 6 })
-  .toFile(path.join(OUT, 'about-color.webp'));
-console.log(`about-color.webp      ${colour.width}x${colour.height}  ${kb(colour.size)}`);
+for (const step of ABOUT_SIZES) {
+  const colour = await aboutCrop()
+    .resize({ width: step.width })
+    .webp({ quality: step.colour, effort: 6 })
+    .toFile(path.join(OUT, `about-color${step.suffix}.webp`));
+  console.log(
+    `about-color${step.suffix}.webp`.padEnd(22) +
+      `${colour.width}x${colour.height}  ${kb(colour.size)}`,
+  );
 
-const grey = await aboutCrop()
-  .resize({ width: ABOUT_W })
-  .greyscale()
-  .webp({ quality: 76, effort: 6 })
-  .toFile(path.join(OUT, 'about-bw.webp'));
-console.log(`about-bw.webp         ${grey.width}x${grey.height}  ${kb(grey.size)}`);
+  const grey = await aboutCrop()
+    .resize({ width: step.width })
+    .greyscale()
+    .webp({ quality: step.grey, effort: 6 })
+    .toFile(path.join(OUT, `about-bw${step.suffix}.webp`));
+  console.log(
+    `about-bw${step.suffix}.webp`.padEnd(22) + `${grey.width}x${grey.height}  ${kb(grey.size)}`,
+  );
+}
 
 /* --------------------------------------------------------------- social card */
 const card = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">

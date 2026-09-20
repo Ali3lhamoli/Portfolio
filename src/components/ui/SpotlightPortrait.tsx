@@ -17,7 +17,9 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
  */
 export default function SpotlightPortrait({
   bw,
+  bwSrcSet,
   color,
+  colorSrcSet,
   alt,
   width,
   height,
@@ -25,7 +27,10 @@ export default function SpotlightPortrait({
   className = '',
 }: {
   bw: string;
+  /** Candidate widths for the greyscale base, e.g. "a.webp 640w, b.webp 1280w" */
+  bwSrcSet?: string;
   color: string;
+  colorSrcSet?: string;
   alt: string;
   width: number;
   height: number;
@@ -46,6 +51,7 @@ export default function SpotlightPortrait({
     <div ref={ref} onPointerMove={track} className={`por ${className}`.trim()}>
       <img
         src={bw}
+        srcSet={bwSrcSet}
         width={width}
         height={height}
         sizes={sizes}
@@ -56,6 +62,7 @@ export default function SpotlightPortrait({
       />
       <img
         src={color}
+        srcSet={colorSrcSet}
         width={width}
         height={height}
         sizes={sizes}

@@ -49,9 +49,11 @@ export default function About() {
           <Reveal step={1}>
             <SpotlightPortrait
               bw="/img/about-bw.webp"
+              bwSrcSet="/img/about-bw.webp 640w, /img/about-bw@2x.webp 1280w"
               color="/img/about-color.webp"
-              width={1100}
-              height={1375}
+              colorSrcSet="/img/about-color.webp 640w, /img/about-color@2x.webp 1280w"
+              width={640}
+              height={800}
               sizes="(min-width: 1024px) 36rem, (min-width: 640px) 26rem, 100vw"
               alt="Ali Al-Hamoli standing on a wooden jetty by a river, framed by banana palms."
               className="mx-auto w-full max-w-[26rem] lg:max-w-none"
