@@ -93,13 +93,12 @@
     background-size: 22px 22px;
   }
 
-  /* Marker highlight behind a phrase (ref: bahaa-atia) */
+  /* Highlighter stroke under a phrase (ref: bahaa-atia).
+     Sized in em so the bar stays proportional across the fluid type scale. */
   .marker {
-    background-image: linear-gradient(
-      to top,
-      rgb(var(--c-marker) / 0.5) 0 36%,
-      transparent 36%
-    );
+    background-image: linear-gradient(rgb(var(--c-marker)) 0 100%);
+    background-size: 100% 0.11em;
+    background-position: 0 0.86em;
     background-repeat: no-repeat;
   }
 
