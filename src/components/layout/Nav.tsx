@@ -26,7 +26,10 @@ export default function Nav({ active }: { active: string }) {
   const { isDark, toggleTheme } = useTheme();
   const railRef = useRef<HTMLDivElement>(null);
 
-  const activeLabel = profile.nav.find((item) => item.id === active)?.label ?? 'Home';
+  // Falling back to a hardcoded 'Home' previously masked a stale spy by
+  // reporting the wrong section; fall back to the first nav entry instead.
+  const activeLabel =
+    profile.nav.find((item) => item.id === active)?.label ?? profile.nav[0].label;
 
   /*
     Track the active link's box. The rail animates its width open, so a single
@@ -84,7 +87,7 @@ export default function Nav({ active }: { active: string }) {
         }}
         className={`dock ${
           open ? 'is-open' : ''
-        } relative w-full max-w-3xl rounded-3xl border border-line/15 bg-surface/80 px-3 py-2 shadow-lg shadow-black/5 backdrop-blur-xl sm:w-auto sm:rounded-full`}
+        } relative w-full max-w-3xl rounded-3xl sm:max-w-none border border-line/15 bg-surface/80 px-3 py-2 shadow-lg shadow-black/5 backdrop-blur-xl sm:w-auto sm:rounded-full`}
       >
         {/* Wordmark + signal */}
         <a
@@ -98,7 +101,7 @@ export default function Nav({ active }: { active: string }) {
         </a>
 
         {/* Collapsible link rail (desktop) */}
-        <span className="dock-rail hidden md:grid">
+        <span className="dock-rail hidden lg:grid">
           <div ref={railRef}>
             <span
               className="glide"
@@ -129,7 +132,7 @@ export default function Nav({ active }: { active: string }) {
         {/* Current section, re-flipping on change */}
         <span
           aria-live="polite"
-          className="ml-1 hidden shrink-0 font-mono text-eyebrow uppercase text-accent md:block"
+          className="ml-1 hidden shrink-0 font-mono text-eyebrow uppercase text-accent lg:block"
         >
           <FlipText text={activeLabel} />
         </span>
@@ -160,7 +163,7 @@ export default function Nav({ active }: { active: string }) {
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            className="rounded-full p-2 text-muted transition-colors duration-200 hover:bg-raised hover:text-ink md:hidden"
+            className="rounded-full p-2 text-muted transition-colors duration-200 hover:bg-raised hover:text-ink lg:hidden"
           >
             {menuOpen ? <X size={16} aria-hidden="true" /> : <Menu size={16} aria-hidden="true" />}
           </button>
@@ -169,7 +172,7 @@ export default function Nav({ active }: { active: string }) {
         {/* Mobile sheet — same 0fr/1fr grid trick, no height measuring */}
         <div
           id="mobile-nav"
-          className={`row-body absolute inset-x-0 top-full md:hidden ${menuOpen ? 'is-open' : ''}`}
+          className={`row-body absolute inset-x-0 top-full lg:hidden ${menuOpen ? 'is-open' : ''}`}
           style={menuOpen ? { gridTemplateRows: '1fr' } : undefined}
         >
           <div>

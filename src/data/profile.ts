@@ -363,7 +363,9 @@ export const profile = {
     { language: 'English', level: 'Professional Working Proficiency' },
   ],
 
+  /** Document order; also drives the scroll spy, so 'home' must be present. */
   nav: [
+    { id: 'home', label: 'Home' },
     { id: 'about', label: 'About' },
     { id: 'experience', label: 'Experience' },
     { id: 'work', label: 'Work' },

@@ -16,7 +16,7 @@ import Skills from './components/sections/Skills';
 import Contact from './components/sections/Contact';
 import { profile } from './data/profile';
 
-const SECTION_IDS = ['home', ...profile.nav.map((item) => item.id)];
+const SECTION_IDS = profile.nav.map((item) => item.id);
 
 /**
  * Lives inside ThemeProvider so the section wash can pick the right palette.
