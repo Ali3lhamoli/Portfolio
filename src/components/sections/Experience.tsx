@@ -1,32 +1,60 @@
-import { useRef } from 'react';
-import { m, useReducedMotion, useScroll, useSpring } from 'framer-motion';
+import { useEffect, useRef } from 'react';
 import Section from '../ui/Section';
 import Reveal from '../ui/Reveal';
 import { profile } from '../../data/profile';
 
 /**
- * Experience timeline. The spine that fills as you scroll past each role is
- * the strongest motion idea from the ahmeddoban reference, rebuilt on
- * framer-motion's useScroll rather than GSAP + ScrollTrigger. The monospace
- * date rail and hairline rules come from bahaa-atia.
+ * Experience timeline with a spine that fills as you scroll past each role.
  *
- * Unlike the reference, roles stack in a single column with a left rail
- * instead of alternating sides — alternating collapses badly on narrow
+ * Progress is written straight into a CSS custom property (`--spine`) inside a
+ * rAF-throttled scroll handler, and the fill is a scaleY transform driven from
+ * it. That keeps the whole effect on the compositor with no animation library
+ * and no React re-render per frame.
+ *
+ * Unlike the reference, roles stack in a single column against a left rail
+ * rather than alternating sides — alternating collapses badly on narrow
  * viewports.
  */
 export default function Experience() {
   const trackRef = useRef<HTMLOListElement>(null);
-  const reduced = useReducedMotion();
+  const fillRef = useRef<HTMLDivElement>(null);
 
-  const { scrollYProgress } = useScroll({
-    target: trackRef,
-    offset: ['start 70%', 'end 60%'],
-  });
-  const progress = useSpring(scrollYProgress, {
-    stiffness: 120,
-    damping: 30,
-    restDelta: 0.001,
-  });
+  useEffect(() => {
+    const track = trackRef.current;
+    const fill = fillRef.current;
+    if (!track || !fill) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      fill.style.setProperty('--spine', '1');
+      return;
+    }
+
+    let queued = false;
+
+    const update = () => {
+      queued = false;
+      const rect = track.getBoundingClientRect();
+      const start = window.innerHeight * 0.7;
+      const span = rect.height + start - window.innerHeight * 0.4;
+      const progress = span > 0 ? (start - rect.top) / span : 0;
+      fill.style.setProperty('--spine', String(Math.min(1, Math.max(0, progress))));
+    };
+
+    const onScroll = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, []);
 
   return (
     <Section
@@ -40,12 +68,9 @@ export default function Experience() {
         {/* Spine */}
         <div
           aria-hidden="true"
-          className="absolute left-[5px] top-2 bottom-2 w-px bg-line/15 sm:left-[7px]"
+          className="absolute bottom-2 left-[5px] top-2 w-px bg-line/15 sm:left-[7px]"
         >
-          <m.div
-            className="h-full w-full origin-top bg-accent"
-            style={reduced ? { scaleY: 1 } : { scaleY: progress }}
-          />
+          <div ref={fillRef} className="spine-fill h-full w-full bg-accent" />
         </div>
 
         {profile.experience.map((role, i) => (
@@ -54,9 +79,7 @@ export default function Experience() {
             <span
               aria-hidden="true"
               className={`absolute left-0 top-1.5 h-[11px] w-[11px] rounded-full border-2 sm:h-[15px] sm:w-[15px] ${
-                role.current
-                  ? 'border-ember bg-ember'
-                  : 'border-line/30 bg-bg'
+                role.current ? 'border-ember bg-ember' : 'border-line/30 bg-bg'
               }`}
             />
 
@@ -65,7 +88,11 @@ export default function Experience() {
                 {role.company}
               </h3>
               {role.current && (
-                <span className="rounded-full border border-ember/40 px-2.5 py-0.5 font-mono text-eyebrow uppercase text-ember">
+                <span className="flex items-center gap-1.5 rounded-full border border-ember/40 px-2.5 py-0.5 font-mono text-eyebrow uppercase text-ember">
+                  <span
+                    className="sig-pulse h-1.5 w-1.5 rounded-full bg-ember"
+                    aria-hidden="true"
+                  />
                   Current
                 </span>
               )}
@@ -84,16 +111,14 @@ export default function Experience() {
             </p>
 
             <ul className="mt-6 space-y-4">
-              {role.bullets.map((bullet, bi) => (
-                <li key={bi} className="flex gap-3">
+              {role.bullets.map((bullet, bulletIndex) => (
+                <li key={bulletIndex} className="flex gap-3">
                   <span
                     aria-hidden="true"
                     className="mt-[0.55rem] h-1 w-1 shrink-0 rounded-full bg-line/40"
                   />
                   <p className="max-w-prose text-sm leading-[1.7] text-muted sm:text-[0.9375rem]">
-                    {bullet.lead && (
-                      <span className="font-medium text-ink">{bullet.lead}: </span>
-                    )}
+                    {bullet.lead && <span className="font-medium text-ink">{bullet.lead}: </span>}
                     {bullet.text}
                   </p>
                 </li>

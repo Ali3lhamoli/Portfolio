@@ -25,20 +25,38 @@ const meta = await sharp(SOURCE).metadata();
 console.log(`source: ${meta.width}x${meta.height} (${(meta.size / 1024 / 1024).toFixed(2)}MB)`);
 
 /* ---------------------------------------------------------------- portrait */
-// The face sits slightly right of centre in the source frame, so the 4:5
-// portrait crop is anchored there rather than dead centre.
-const cropH = meta.height;
+/*
+  Compose the 4:5 crop around the subject instead of the frame.
+
+  A luminance-weighted centroid of the source (it is a low-key shot, so the lit
+  face is the only bright region) puts the face at x=0.524, y=0.324. Cropping
+  the full frame height therefore left the face at 32% from the top, which
+  reads as top-heavy rather than centred. Cropping to 820px of height instead
+  places it at ~40% — the conventional portrait eyeline — and centring the crop
+  on the measured x keeps it horizontally true.
+*/
+const FACE_X = 0.5237;
+const FACE_Y = 0.3235;
+const FACE_FROM_TOP = 0.42; // where the face should sit in the final frame
+
+const faceX = Math.round(meta.width * FACE_X);
+const faceY = Math.round(meta.height * FACE_Y);
+
+const cropH = 820;
 const cropW = Math.round((cropH * 4) / 5);
-const left = Math.min(
-  Math.max(Math.round(meta.width * 0.54 - cropW / 2), 0),
-  meta.width - cropW,
+const left = Math.min(Math.max(faceX - Math.round(cropW / 2), 0), meta.width - cropW);
+const top = Math.min(Math.max(faceY - Math.round(cropH * FACE_FROM_TOP), 0), meta.height - cropH);
+
+console.log(
+  `crop          : ${cropW}x${cropH} at (${left},${top}) — face at ` +
+    `${(((faceX - left) / cropW) * 100).toFixed(1)}% x, ${(((faceY - top) / cropH) * 100).toFixed(1)}% y`,
 );
 
 for (const width of [560, 1120]) {
   const suffix = width === 560 ? '' : '@2x';
   const file = path.join(OUT, `portrait${suffix}.webp`);
   const info = await sharp(SOURCE)
-    .extract({ left, top: 0, width: cropW, height: cropH })
+    .extract({ left, top, width: cropW, height: cropH })
     .resize({ width, fit: 'cover' })
     .webp({ quality: 82, effort: 6 })
     .toFile(file);
@@ -55,7 +73,7 @@ const card = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
 </svg>`;
 
 const portraitForCard = await sharp(SOURCE)
-  .extract({ left, top: 0, width: cropW, height: cropH })
+  .extract({ left, top, width: cropW, height: cropH })
   .resize({ width: 430, height: 630, fit: 'cover' })
   .toBuffer();
 

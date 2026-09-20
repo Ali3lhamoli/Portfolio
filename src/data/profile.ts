@@ -45,9 +45,17 @@ export const profile = {
 
   eyebrow: ['Ali Al-Hamoli', 'Full-Stack Software Engineer', 'Cairo, Egypt'],
 
-  /** Hero headline. `marker` is the phrase that receives the highlight treatment. */
+  /**
+   * Hero headline: "I build <rolling word> end to end."
+   *
+   * Every word in `roll` is something the CV says he actually builds —
+   * AI chatbots, WhatsApp Flows, RESTful APIs, client dashboards and the
+   * event/restaurant ticketing system. They are kept short because the
+   * roller sits on one line of display type.
+   */
   headline: {
-    lines: ['AI-powered platforms,', 'built and shipped'],
+    lead: 'I build',
+    roll: ['AI chatbots', 'WhatsApp flows', 'REST APIs', 'dashboards', 'ticketing'],
     marker: 'end to end.',
   },
 

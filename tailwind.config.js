@@ -25,7 +25,7 @@ export default {
         // Fluid scale — the hero can never overflow a small viewport
         eyebrow: ['0.6875rem', { lineHeight: '1', letterSpacing: '0.14em' }],
         label: ['0.75rem', { lineHeight: '1.2', letterSpacing: '0.1em' }],
-        hero: ['clamp(2.5rem, 8.5vw, 6rem)', { lineHeight: '0.95', letterSpacing: '-0.03em' }],
+        hero: ['clamp(2.35rem, 7.2vw, 5rem)', { lineHeight: '0.95', letterSpacing: '-0.03em' }],
         section: ['clamp(1.75rem, 4vw, 2.75rem)', { lineHeight: '1.05', letterSpacing: '-0.02em' }],
         index: ['clamp(1.6rem, 4.5vw, 3rem)', { lineHeight: '1.05', letterSpacing: '-0.025em' }],
       },

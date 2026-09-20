@@ -33,7 +33,7 @@ export default function Contact() {
             className="max-w-3xl font-display text-section font-semibold text-ink"
           >
             Got something that needs building?{' '}
-            <span className="marker px-1">Let&rsquo;s talk.</span>
+            <span className="hl px-1">Let&rsquo;s talk.</span>
           </h2>
         </Reveal>
 
