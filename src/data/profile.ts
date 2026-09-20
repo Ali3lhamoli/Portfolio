@@ -55,7 +55,7 @@ export const profile = {
    */
   headline: {
     lead: 'I build',
-    roll: ['AI chatbots', 'WhatsApp flows', 'REST APIs', 'dashboards', 'ticketing'],
+    roll: ['Full Stack systems', 'AI chatbots', 'WhatsApp flows', 'REST APIs', 'dashboards'],
     marker: 'end to end.',
   },
 
