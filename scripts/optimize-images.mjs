@@ -1,19 +1,26 @@
 /**
- * One-off asset pipeline.
+ * Asset pipeline. Run with: npm run images
  *
- * The repo shipped ~4.8MB of unoptimized PNGs (a 1.7MB hero background and a
- * 1.5MB favicon). This script derives web-sized WebP portraits, a social
- * share card and an apple-touch-icon from the source photo.
+ * Sources live in assets/photos/ — outside public/, so Vite never serves the
+ * originals — and everything under public/img/ is generated from them.
  *
- * Run with: npm run images
+ * Outputs:
+ *   img/hero.webp                     square hero portrait
+ *   img/about-bw.webp   + @2x         About portrait, greyscale (base layer)
+ *   img/about-color.webp + @2x        About portrait, colour (revealed layer)
+ *   og.jpg                            1200x630 social card
+ *   apple-touch-icon.png              180x180
  */
 import sharp from 'sharp';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
+const PHOTOS = path.resolve('assets/photos');
 const PUBLIC = path.resolve('public');
-const SOURCE = path.join(PUBLIC, 'aliblack.png');
 const OUT = path.join(PUBLIC, 'img');
+
+const HERO_SRC = path.join(PHOTOS, 'hero.png');
+const ABOUT_SRC = path.join(PHOTOS, 'about.jpg');
 
 const INK = '#f3efe4';
 const ACCENT = '#2dd4bf';
@@ -21,49 +28,61 @@ const BG = '#0e0e0e';
 
 await mkdir(OUT, { recursive: true });
 
-const meta = await sharp(SOURCE).metadata();
-console.log(`source: ${meta.width}x${meta.height} (${(meta.size / 1024 / 1024).toFixed(2)}MB)`);
+const kb = (bytes) => `${(bytes / 1024).toFixed(0)}KB`;
 
-/* ---------------------------------------------------------------- portrait */
+/* ------------------------------------------------------------ hero portrait */
 /*
-  Compose the 4:5 crop around the subject instead of the frame.
-
-  A luminance-weighted centroid of the source (it is a low-key shot, so the lit
-  face is the only bright region) puts the face at x=0.524, y=0.324. Cropping
-  the full frame height therefore left the face at 32% from the top, which
-  reads as top-heavy rather than centred. Cropping to 820px of height instead
-  places it at ~40% — the conventional portrait eyeline — and centring the crop
-  on the measured x keeps it horizontally true.
+  The hero source is only 400x400, which is the ceiling on how large the frame
+  can go before it softens: at 384 CSS px it is effectively 1:1 on a standard
+  display, but a 2x display would need 768px. No @2x is emitted because
+  upscaling adds bytes without adding detail — a larger export of this photo
+  is the only real fix.
 */
-const FACE_X = 0.5237;
-const FACE_Y = 0.3235;
-const FACE_FROM_TOP = 0.42; // where the face should sit in the final frame
+const heroMeta = await sharp(HERO_SRC).metadata();
+const hero = await sharp(HERO_SRC).webp({ quality: 88, effort: 6 }).toFile(path.join(OUT, 'hero.webp'));
+console.log(`hero source           ${heroMeta.width}x${heroMeta.height}`);
+console.log(`hero.webp             ${hero.width}x${hero.height}  ${kb(hero.size)}`);
 
-const faceX = Math.round(meta.width * FACE_X);
-const faceY = Math.round(meta.height * FACE_Y);
-
-const cropH = 820;
-const cropW = Math.round((cropH * 4) / 5);
-const left = Math.min(Math.max(faceX - Math.round(cropW / 2), 0), meta.width - cropW);
-const top = Math.min(Math.max(faceY - Math.round(cropH * FACE_FROM_TOP), 0), meta.height - cropH);
+/* ----------------------------------------------------------- about portrait */
+/*
+  The About frame is 4:5. The source is 3:4 (3024x4032) — taller than 4:5 —
+  so the crop takes the full width and trims height only; there is no
+  horizontal freedom. Offsetting 150px from the top removes a band of sky
+  while keeping his feet inside the frame.
+*/
+const aboutMeta = await sharp(ABOUT_SRC).metadata();
+const aboutW = aboutMeta.width;
+const aboutH = Math.round((aboutW * 5) / 4);
+const aboutTop = Math.min(150, aboutMeta.height - aboutH);
 
 console.log(
-  `crop          : ${cropW}x${cropH} at (${left},${top}) — face at ` +
-    `${(((faceX - left) / cropW) * 100).toFixed(1)}% x, ${(((faceY - top) / cropH) * 100).toFixed(1)}% y`,
+  `about source          ${aboutMeta.width}x${aboutMeta.height} -> crop ${aboutW}x${aboutH} at y=${aboutTop}`,
 );
 
-for (const width of [560, 1120]) {
-  const suffix = width === 560 ? '' : '@2x';
-  const file = path.join(OUT, `portrait${suffix}.webp`);
-  const info = await sharp(SOURCE)
-    .extract({ left, top, width: cropW, height: cropH })
-    .resize({ width, fit: 'cover' })
-    .webp({ quality: 82, effort: 6 })
-    .toFile(file);
-  console.log(`portrait${suffix}.webp  ${info.width}x${info.height}  ${(info.size / 1024).toFixed(0)}KB`);
-}
+const aboutCrop = () =>
+  sharp(ABOUT_SRC).extract({ left: 0, top: aboutTop, width: aboutW, height: aboutH });
 
-/* ----------------------------------------------------------- social card */
+/*
+  One size only. The frame is ~288 CSS px wide, so 640px already covers a 2x
+  display with room to spare. An @2x pair here cost ~317KB of payload for a
+  below-the-fold hover effect where nothing could perceive the difference.
+*/
+const ABOUT_W = 640;
+
+const colour = await aboutCrop()
+  .resize({ width: ABOUT_W })
+  .webp({ quality: 78, effort: 6 })
+  .toFile(path.join(OUT, 'about-color.webp'));
+console.log(`about-color.webp      ${colour.width}x${colour.height}  ${kb(colour.size)}`);
+
+const grey = await aboutCrop()
+  .resize({ width: ABOUT_W })
+  .greyscale()
+  .webp({ quality: 80, effort: 6 })
+  .toFile(path.join(OUT, 'about-bw.webp'));
+console.log(`about-bw.webp         ${grey.width}x${grey.height}  ${kb(grey.size)}`);
+
+/* --------------------------------------------------------------- social card */
 const card = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
   <rect width="1200" height="630" fill="${BG}"/>
   <text x="80" y="300" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="700" fill="${INK}">Ali Al-Hamoli</text>
@@ -72,27 +91,26 @@ const card = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
   <rect x="80" y="470" width="120" height="4" fill="${ACCENT}"/>
 </svg>`;
 
-const portraitForCard = await sharp(SOURCE)
-  .extract({ left, top, width: cropW, height: cropH })
-  .resize({ width: 430, height: 630, fit: 'cover' })
+const cardPortrait = await sharp(HERO_SRC)
+  .resize({ width: 430, height: 630, fit: 'cover', position: 'top' })
   .toBuffer();
 
-const ogInfo = await sharp(Buffer.from(card))
-  .composite([{ input: portraitForCard, left: 770, top: 0, blend: 'over' }])
+const og = await sharp(Buffer.from(card))
+  .composite([{ input: cardPortrait, left: 770, top: 0, blend: 'over' }])
   .jpeg({ quality: 86, mozjpeg: true })
   .toFile(path.join(PUBLIC, 'og.jpg'));
-console.log(`og.jpg                1200x630  ${(ogInfo.size / 1024).toFixed(0)}KB`);
+console.log(`og.jpg                1200x630  ${kb(og.size)}`);
 
-/* -------------------------------------------------------- touch icon */
+/* ------------------------------------------------------------- touch icon */
 const icon = `<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180">
   <rect width="180" height="180" rx="40" fill="${BG}"/>
   <text x="90" y="118" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="700" fill="${INK}">A</text>
   <text x="128" y="118" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="700" fill="${ACCENT}">A</text>
 </svg>`;
 
-const iconInfo = await sharp(Buffer.from(icon))
+const iconOut = await sharp(Buffer.from(icon))
   .png({ compressionLevel: 9 })
   .toFile(path.join(PUBLIC, 'apple-touch-icon.png'));
-console.log(`apple-touch-icon.png  180x180   ${(iconInfo.size / 1024).toFixed(0)}KB`);
+console.log(`apple-touch-icon.png  180x180   ${kb(iconOut.size)}`);
 
 console.log('\ndone.');

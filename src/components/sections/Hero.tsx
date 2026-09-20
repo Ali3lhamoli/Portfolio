@@ -154,28 +154,27 @@ export default function Hero() {
 
         {/* -------------------------------------------------- portrait */}
         {/*
-          Held to a fixed width and centred in its column. The frame stays dark
-          in both themes because the photograph is a low-key shot that only
-          reads against black, and the crop is composed on the measured face
-          position (see scripts/optimize-images.mjs) rather than on the frame.
+          The frame stays dark in both themes: the photograph is a low-key
+          black-and-white shot that only reads against black.
+
+          Source is a square 400x400 export, which caps how large this can go
+          before it softens — 24rem (384px) is effectively 1:1 on a standard
+          display. No srcSet, because upscaling would add bytes without adding
+          detail.
         */}
-        <div
-          style={delay(4)}
-          className="rise-in mx-auto w-full max-w-[17.5rem] sm:max-w-[19rem]"
-        >
+        <div style={delay(4)} className="rise-in mx-auto w-full max-w-[20rem] sm:max-w-[24rem]">
           <figure className="rounded-2xl border border-line/15 bg-[#0e0e0e] p-3">
             <img
-              src="/img/portrait.webp"
-              srcSet="/img/portrait.webp 560w, /img/portrait@2x.webp 1120w"
-              sizes="(min-width: 640px) 19rem, 17.5rem"
-              width={560}
-              height={700}
+              src="/img/hero.webp"
+              sizes="(min-width: 640px) 24rem, 20rem"
+              width={400}
+              height={400}
               // React 18 does not map the camelCase prop, so pass the real
               // HTML attribute name through instead.
               {...({ fetchpriority: 'high' } as Record<string, string>)}
               decoding="async"
-              alt="Ali Al-Hamoli, photographed in low-key black and white against a dark background."
-              className="w-full rounded-xl"
+              alt="Ali Al-Hamoli, smiling, in a black-and-white portrait against a dark background."
+              className="aspect-square w-full rounded-xl object-cover"
             />
             <figcaption className="flex items-center justify-between gap-2 px-1 pb-0.5 pt-3 font-mono text-eyebrow uppercase text-[#8c8c88]">
               <span>{profile.location}</span>
