@@ -63,22 +63,27 @@ const aboutCrop = () =>
   sharp(ABOUT_SRC).extract({ left: 0, top: aboutTop, width: aboutW, height: aboutH });
 
 /*
-  One size only. The frame is ~288 CSS px wide, so 640px already covers a 2x
-  display with room to spare. An @2x pair here cost ~317KB of payload for a
-  below-the-fold hover effect where nothing could perceive the difference.
+  The About portrait now takes a full half of the layout, rendering up to
+  ~600 CSS px instead of the 288px it had when it sat in a narrow rail. 640px
+  no longer covers it, so this goes to 1100: sharp at 1100 on a standard
+  display and at 550 CSS px on a 2x one.
+
+  Still one size per layer rather than a srcSet pair — a 1x/2x set at this
+  scale ran to roughly 700KB across the two layers, which is not a reasonable
+  price for a decorative hover.
 */
-const ABOUT_W = 640;
+const ABOUT_W = 1100;
 
 const colour = await aboutCrop()
   .resize({ width: ABOUT_W })
-  .webp({ quality: 78, effort: 6 })
+  .webp({ quality: 74, effort: 6 })
   .toFile(path.join(OUT, 'about-color.webp'));
 console.log(`about-color.webp      ${colour.width}x${colour.height}  ${kb(colour.size)}`);
 
 const grey = await aboutCrop()
   .resize({ width: ABOUT_W })
   .greyscale()
-  .webp({ quality: 80, effort: 6 })
+  .webp({ quality: 76, effort: 6 })
   .toFile(path.join(OUT, 'about-bw.webp'));
 console.log(`about-bw.webp         ${grey.width}x${grey.height}  ${kb(grey.size)}`);
 

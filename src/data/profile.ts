@@ -119,8 +119,8 @@ export const profile = {
   /** Every figure below is stated outright in the CV. */
   stats: [
     { value: '3', label: 'Companies' },
-    { value: '60%', label: 'of Tali V3 core architected' },
-    { value: '30%', label: 'Faster API response' },
+    { value: '100%', label: 'AI-Assisted Workflow' },
+    { value: 'Bridging', label: 'Tech & Business Goals' },
   ],
 
   experience: [
