@@ -7,6 +7,7 @@ import Nav from './components/layout/Nav';
 import Footer from './components/layout/Footer';
 import BackToTop from './components/layout/BackToTop';
 import Cursor from './components/ui/Cursor';
+import Splash from './components/layout/Splash';
 import Hero from './components/sections/Hero';
 import Stats from './components/sections/Stats';
 import About from './components/sections/About';
@@ -23,7 +24,7 @@ const SECTION_IDS = profile.nav.map((item) => item.id);
  * The active section is resolved once here and shared, rather than each
  * consumer running its own observer.
  */
-function Shell() {
+function Shell({ splash }: { splash: boolean }) {
   const { isDark } = useTheme();
   const active = useActiveSection(SECTION_IDS);
 
@@ -54,14 +55,15 @@ function Shell() {
       <Footer />
       <BackToTop />
       <Cursor />
+      {splash && <Splash />}
     </>
   );
 }
 
-export default function App() {
+export default function App({ splash = false }: { splash?: boolean }) {
   return (
     <ThemeProvider>
-      <Shell />
+      <Shell splash={splash} />
     </ThemeProvider>
   );
 }

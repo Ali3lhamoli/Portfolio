@@ -688,3 +688,161 @@
     }
   }
 }
+
+/* ==========================================================================
+   9. Splash screen
+   Shown once per session on first load. Built from the site's own vocabulary
+   — bracketed mono metadata, the Archivo display face settling its variable
+   axes, the amber highlighter stroke and a teal progress bar — rather than
+   the handwriting-signature idea from the ahmeddoban reference.
+
+   Every animation uses `both` fill, so the panel reaches its finished
+   (hidden) state even if a throttled timer never unmounts it. Nothing here
+   depends on JavaScript to disappear.
+   ========================================================================== */
+@layer components {
+  .splash {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    background-color: rgb(var(--c-bg));
+    animation: sp-exit 0.55s var(--spring) both;
+    animation-delay: 1.6s;
+  }
+
+  .splash-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0 1.5rem;
+    text-align: center;
+    animation: sp-inner-out 0.35s var(--spring) both;
+    animation-delay: 1.5s;
+  }
+
+  /* Bracketed location line */
+  .sp-eyebrow {
+    animation: sp-fade 0.5s var(--spring) both;
+    animation-delay: 0.1s;
+  }
+
+  /* One span per character, rising on its own delay */
+  .sp-ch {
+    display: inline-block;
+    animation: sp-char 0.62s var(--spring) both;
+    animation-delay: calc(0.2s + var(--i, 0) * 38ms);
+  }
+
+  .sp-role {
+    animation: sp-fade 0.6s var(--spring) both;
+    animation-delay: 0.95s;
+  }
+
+  .sp-bar {
+    position: relative;
+    height: 2px;
+    width: 11rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background-color: rgb(var(--c-line) / 0.18);
+    animation: sp-fade 0.4s var(--spring) both;
+    animation-delay: 0.2s;
+  }
+
+  .sp-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform-origin: left center;
+    background-color: rgb(var(--c-accent));
+    animation: sp-fill 1.3s var(--spring) both;
+    animation-delay: 0.25s;
+  }
+
+  /* Decorative, and the page underneath renders regardless. */
+  @media (prefers-reduced-motion: reduce) {
+    .splash {
+      display: none;
+    }
+  }
+}
+
+/*
+  While the splash is up, the hero's own entrance is pushed back so it plays
+  as the curtain lifts instead of finishing unseen behind it. Scoped to
+  `main` so the splash's own .vf / .rise / .hl-auto are untouched.
+*/
+html.is-splashing main .rise,
+html.is-splashing main .rise-in {
+  animation-delay: calc(var(--rise-delay, 0ms) + 1750ms);
+}
+
+html.is-splashing main .hl-auto::after {
+  animation-delay: calc(var(--hl-delay, 0.35s) + 1750ms);
+}
+
+html.is-splashing main .vf {
+  animation-delay: 1750ms;
+}
+
+@keyframes sp-fade {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sp-char {
+  from {
+    opacity: 0;
+    transform: translateY(0.55em) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sp-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes sp-inner-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+}
+
+/* A curtain lift. transform rather than clip-path so it cannot fail, and
+   visibility flips at the end so the panel stops intercepting pointers. */
+@keyframes sp-exit {
+  from {
+    transform: translateY(0);
+    visibility: visible;
+  }
+  99% {
+    visibility: visible;
+  }
+  to {
+    transform: translateY(-100%);
+    visibility: hidden;
+  }
+}
