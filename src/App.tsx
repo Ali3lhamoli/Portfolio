@@ -1,31 +1,69 @@
-import React from 'react';
-import { ThemeProvider } from './contexts/ThemeContext';
-import Header from './components/Header';
-import Hero from './components/Hero';
-import About from './components/About';
-import Experience from './components/Experience';
-import Projects from './components/Projects';
-import Skills from './components/Skills';
-import Contact from './components/Contact';
-import Footer from './components/Footer';
+import { ThemeProvider } from './contexts/ThemeProvider';
+import { useTheme } from './contexts/theme';
+import { useSmoothScroll } from './hooks/useSmoothScroll';
+import { useActiveSection } from './hooks/useActiveSection';
+import { useSectionWash } from './hooks/useSectionWash';
+import Nav from './components/layout/Nav';
+import Footer from './components/layout/Footer';
+import BackToTop from './components/layout/BackToTop';
+import Cursor from './components/ui/Cursor';
+import Splash from './components/layout/Splash';
+import Hero from './components/sections/Hero';
+import Stats from './components/sections/Stats';
+import About from './components/sections/About';
+import Experience from './components/sections/Experience';
+import Projects from './components/sections/Projects';
+import Skills from './components/sections/Skills';
+import Contact from './components/sections/Contact';
+import { profile } from './data/profile';
 
-function App() {
+const SECTION_IDS = profile.nav.map((item) => item.id);
+
+/**
+ * Lives inside ThemeProvider so the section wash can pick the right palette.
+ * The active section is resolved once here and shared, rather than each
+ * consumer running its own observer.
+ */
+function Shell({ splash }: { splash: boolean }) {
+  const { isDark } = useTheme();
+  const active = useActiveSection(SECTION_IDS);
+
+  useSmoothScroll();
+  useSectionWash(active, isDark);
+
   return (
-    <ThemeProvider>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-black dark:to-gray-900 transition-colors duration-500">
-        <Header />
-        <main>
-          <Hero />
-          <About />
-          <Experience />
-          <Projects />
-          <Skills />
-          <Contact />
-        </main>
-        <Footer />
-      </div>
-    </ThemeProvider>
+    <>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:font-mono focus:text-label focus:uppercase focus:text-bg"
+      >
+        Skip to content
+      </a>
+
+      <Nav active={active} />
+
+      <main id="main">
+        <Hero />
+        <Stats />
+        <About />
+        <Experience />
+        <Projects />
+        <Skills />
+        <Contact />
+      </main>
+
+      <Footer />
+      <BackToTop />
+      <Cursor />
+      {splash && <Splash />}
+    </>
   );
 }
 
-export default App;
+export default function App({ splash = false }: { splash?: boolean }) {
+  return (
+    <ThemeProvider>
+      <Shell splash={splash} />
+    </ThemeProvider>
+  );
+}

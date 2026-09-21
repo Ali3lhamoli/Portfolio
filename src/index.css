@@ -1,3 +1,848 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ==========================================================================
+   1. Design tokens — single source of truth for both themes.
+   Values are space-separated RGB channels so Tailwind opacity modifiers
+   (e.g. text-ink/70) keep working. Dark is the default theme; `.light` on
+   <html> opts into the warm-paper theme.
+   ========================================================================== */
+@layer base {
+  :root {
+    --c-bg: 14 14 14;
+    --c-surface: 22 22 22;
+    --c-raised: 30 30 30;
+    --c-ink: 243 239 228;
+    --c-muted: 140 140 136;
+    --c-faint: 125 125 118;
+    --c-line: 243 239 228;
+    --c-accent: 45 212 191;
+    --c-marker: 242 199 68;
+    --c-ember: 255 107 61;
+
+    --grid-dot: 243 239 228;
+    --grid-alpha: 0.07;
+
+    /* Section wash — animated per active section (see useSectionWash). */
+    --wash: 14 14 14;
+
+    /*
+      Easing. Lifted from the reference portfolio, which drives its entire
+      motion language from these two curves: a long-tail "spring" for
+      everything, and an overshooting "bounce" for accents.
+    */
+    --spring: cubic-bezier(0.16, 1, 0.3, 1);
+    --bounce: cubic-bezier(0.2, 1.3, 0.35, 1);
+  }
+
+  :root.light {
+    --c-bg: 247 246 241;
+    --c-surface: 255 255 255;
+    --c-raised: 241 239 232;
+    --c-ink: 16 16 16;
+    --c-muted: 92 92 87;
+    --c-faint: 108 108 102;
+    --c-line: 16 16 16;
+    --c-accent: 15 111 100;
+    --c-marker: 242 199 68;
+    --c-ember: 186 64 19;
+
+    --grid-dot: 16 16 16;
+    --grid-alpha: 0.08;
+
+    --wash: 247 246 241;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Lenis drives scrolling itself; native smooth scrolling fights it. */
+  html.lenis {
+    scroll-behavior: auto;
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  body {
+    @apply text-ink font-sans antialiased;
+    background-color: rgb(var(--wash));
+    /* The wash is a solid colour precisely so it can animate — CSS cannot
+       interpolate gradients. The texture comes from .dot-grid on top. */
+    transition: background-color 1.1s cubic-bezier(0.3, 0, 0.2, 1);
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  /* Fixed nav clearance for anchor jumps */
+  section[id] {
+    scroll-margin-top: 5.5rem;
+  }
+
+  ::selection {
+    background-color: rgb(var(--c-marker) / 0.85);
+    color: #101010;
+  }
+
+  /* Visible, consistent keyboard focus everywhere */
+  :focus-visible {
+    outline: 2px solid rgb(var(--c-accent));
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   2. Surfaces and type accents
+   ========================================================================== */
+@layer components {
+  /* Dot-grid texture — CSS only, no image payload */
+  .dot-grid {
+    background-image: radial-gradient(
+      rgb(var(--grid-dot) / var(--grid-alpha)) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+
+  /*
+    Highlighter stroke that draws itself in from the left once revealed,
+    rather than being painted statically.
+  */
+  .hl {
+    position: relative;
+    display: inline-block;
+  }
+
+  .hl::after {
+    content: '';
+    position: absolute;
+    left: -0.06em;
+    right: -0.06em;
+    bottom: 0.04em;
+    height: 0.11em;
+    background-color: rgb(var(--c-marker));
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.45s var(--spring);
+    transition-delay: var(--hl-delay, 0.35s);
+  }
+
+  .hl.is-drawn::after,
+  .is-visible .hl::after {
+    transform: scaleX(1);
+  }
+
+  /*
+    Above the fold there is no .reveal ancestor to flip the stroke on, so the
+    hero draws its own on load. `both` fill holds it open afterwards.
+  */
+  .hl-auto::after {
+    animation: hl-draw 0.45s var(--spring) both;
+    animation-delay: var(--hl-delay, 0.35s);
+  }
+
+  /* Filled highlight for phrases inside body copy.
+     box-decoration-break keeps the highlight continuous when a phrase
+     wraps across lines instead of drawing a box per fragment. */
+  .marker-fill {
+    background-color: rgb(var(--c-marker) / 0.2);
+    padding: 0.1em 0.2em;
+    margin: 0 -0.06em;
+    border-radius: 0.2em;
+    color: inherit;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /*
+    Variable-font display type. Archivo is loaded with its weight and width
+    axes so the headline can settle in by interpolating font-variation-settings
+    and individual characters can thicken on hover.
+
+    The settle is a CSS animation rather than a JS class toggle: a toggle
+    scheduled on requestAnimationFrame never runs in a background tab, which
+    would leave the type stuck at its start value. `both` fill holds the
+    finished axes.
+  */
+  .vf {
+    font-variation-settings: 'wdth' 100, 'wght' 600;
+    animation: vf-settle 0.95s var(--spring) both;
+  }
+
+  .vf .hc {
+    display: inline-block;
+    font-variation-settings: inherit;
+    transition:
+      font-variation-settings 0.3s var(--spring),
+      transform 0.5s var(--spring);
+  }
+
+  @media (hover: hover) {
+    .vf .hc:hover {
+      font-variation-settings: 'wdth' 110, 'wght' 900;
+      transform: translateY(-0.04em);
+    }
+  }
+}
+
+/* ==========================================================================
+   3. Entrance and scroll reveal
+   ========================================================================== */
+@layer components {
+  .rise {
+    animation: rise 0.9s var(--spring) both;
+    animation-delay: var(--rise-delay, 0ms);
+  }
+
+  .rise-in {
+    animation: rise-in 1s var(--spring) both;
+    animation-delay: var(--rise-delay, 0ms);
+  }
+
+  /*
+    Scroll reveal. The hidden state is scoped to `html.js` (set in main.tsx)
+    so content is never hidden when JavaScript is unavailable.
+  */
+  .js .reveal {
+    opacity: 0;
+    transform: translateY(1.75rem);
+    transition:
+      opacity 0.8s var(--spring),
+      transform 0.8s var(--spring);
+    transition-delay: var(--rise-delay, 0ms);
+  }
+
+  .js .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .js .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   4. Per-character flip, word roller, marquee, pulse
+   ========================================================================== */
+@layer components {
+  /* Characters drop into place with a stagger; remounting replays it. */
+  .flip {
+    display: inline-flex;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+
+  .flip .ch {
+    display: inline-block;
+    white-space: pre;
+    animation: ch-in 0.5s var(--spring) both;
+    animation-delay: calc(var(--i, 0) * 28ms);
+  }
+
+  /*
+    Word roller: a stack of words, one visible at a time, each letter
+    translating on its own delay. Width animates between words, which is why
+    the measured width is written in as an inline style.
+  */
+  .roll {
+    position: relative;
+    display: inline-block;
+    vertical-align: bottom;
+    transition: width 0.58s var(--spring);
+  }
+
+  /*
+    Clips the letters vertically as they roll. Extended past the right edge so
+    a hairline of measurement error (fallback font metrics before Archivo
+    loads, negative tracking) cannot shave the last glyph.
+  */
+  .roll .mask {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: -0.6em;
+    overflow: hidden;
+  }
+
+  .roll .rw {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: flex;
+    white-space: pre;
+  }
+
+  .roll .rw i {
+    display: inline-block;
+    font-style: inherit;
+    transform: translateY(102%);
+    transition: transform 0.55s var(--spring);
+    transition-delay: calc(var(--i, 0) * 32ms);
+  }
+
+  .roll .rw.is-on i {
+    transform: none;
+  }
+
+  .roll .rw.is-out i {
+    transform: translateY(-102%);
+  }
+
+  /* Hidden sizing copy — keeps the line box the right height. */
+  .roll .ghost {
+    visibility: hidden;
+    display: block;
+    white-space: pre;
+  }
+
+  /* Endless tech marquee. The track holds the list twice, so translating it
+     by -50% lands exactly on the seam. */
+  .marq {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 7%,
+      #000 93%,
+      transparent
+    );
+    mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  }
+
+  .marq .track {
+    display: flex;
+    width: max-content;
+    animation: run 40s linear infinite;
+  }
+
+  .marq:hover .track,
+  .marq:focus-within .track {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marq .track {
+      animation: none;
+    }
+  }
+
+  .sig-pulse {
+    animation: pulse 2.6s ease infinite;
+  }
+}
+
+@keyframes ch-in {
+  from {
+    transform: translateY(0.9em);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes run {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  72%,
+  100% {
+    opacity: 1;
+  }
+  86% {
+    opacity: 0.2;
+  }
+}
+
+/* ==========================================================================
+   5. Navigation dock
+   ========================================================================== */
+@layer components {
+  .dock {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition:
+      gap 0.55s var(--spring),
+      padding 0.55s var(--spring),
+      transform 0.5s var(--spring);
+  }
+
+  /* Collapsed by default: the link rail has zero width until opened. */
+  .dock-rail {
+    display: grid;
+    grid-template-columns: 0fr;
+    overflow: hidden;
+    transition: grid-template-columns 0.58s var(--spring);
+  }
+
+  .dock.is-open .dock-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .dock-rail > div {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .dock-rail a {
+    opacity: 0;
+    transform: translateY(0.4rem);
+    transition:
+      opacity 0.35s,
+      transform 0.45s var(--spring),
+      color 0.25s;
+    transition-delay: calc(var(--i, 0) * 38ms);
+  }
+
+  .dock.is-open .dock-rail a {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Sliding active-item indicator. */
+  .glide {
+    position: absolute;
+    bottom: 0.1rem;
+    height: 2px;
+    border-radius: 999px;
+    background-color: rgb(var(--c-marker));
+    transition:
+      width 0.4s var(--spring),
+      left 0.4s var(--spring),
+      opacity 0.25s;
+    pointer-events: none;
+  }
+}
+
+/* ==========================================================================
+   6. Custom cursor
+   ========================================================================== */
+@layer components {
+  .cur {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 90;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .cur.is-active {
+    opacity: 1;
+  }
+
+  .cur-dot,
+  .cur-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+  }
+
+  .cur-dot {
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    background-color: rgb(var(--c-ink));
+    transition: background-color 0.25s;
+  }
+
+  .cur-ring {
+    width: 32px;
+    height: 32px;
+    margin: -16px 0 0 -16px;
+    border: 1px solid rgb(var(--c-ink) / 0.4);
+    transition:
+      width 0.3s var(--spring),
+      height 0.3s var(--spring),
+      margin 0.3s var(--spring),
+      border-color 0.3s,
+      opacity 0.3s;
+  }
+
+  /* Grows and takes the accent colour over anything interactive. */
+  .cur.is-hot .cur-ring {
+    width: 58px;
+    height: 58px;
+    margin: -29px 0 0 -29px;
+    border-color: rgb(var(--c-accent));
+  }
+
+  .cur.is-hot .cur-dot {
+    background-color: rgb(var(--c-accent));
+  }
+
+  /* Pointer-less and reduced-motion visitors keep the native cursor. */
+  @media (hover: none), (prefers-reduced-motion: reduce) {
+    .cur {
+      display: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   7. Project index rows
+   ========================================================================== */
+@layer components {
+  .row-head {
+    transition: padding-left 0.5s var(--spring);
+  }
+
+  .row:hover .row-head,
+  .row.is-open .row-head {
+    padding-left: 0.85rem;
+  }
+
+  .row-plus {
+    transition:
+      background-color 0.35s,
+      border-color 0.35s,
+      transform 0.55s var(--spring);
+  }
+
+  .row.is-open .row-plus {
+    transform: rotate(135deg);
+    border-color: rgb(var(--c-accent) / 0.55);
+  }
+
+  .row-side {
+    transition:
+      opacity 0.45s var(--spring),
+      transform 0.45s var(--spring);
+  }
+
+  .row:hover .row-side {
+    opacity: 1;
+    transform: translateX(-0.2rem);
+  }
+
+  /* Height-less accordion: 0fr -> 1fr needs no measurement. */
+  .row-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.6s var(--spring);
+  }
+
+  .row.is-open .row-body {
+    grid-template-rows: 1fr;
+  }
+
+  .row-body > * {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .chip {
+    opacity: 0;
+    transform: translateY(0.5rem);
+    transition:
+      opacity 0.22s,
+      transform 0.4s var(--spring);
+    transition-delay: calc(var(--i, 0) * 35ms);
+  }
+
+  .row.is-open .chip {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Scroll-linked timeline spine. --spine is written by Experience. */
+  .spine-fill {
+    transform: scaleY(var(--spine, 0));
+    transform-origin: top center;
+  }
+}
+
+@keyframes vf-settle {
+  from {
+    font-variation-settings: 'wdth' 84, 'wght' 500;
+  }
+  to {
+    font-variation-settings: 'wdth' 100, 'wght' 600;
+  }
+}
+
+@keyframes hl-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ==========================================================================
+   8. Spotlight portrait (About)
+   Two stacked images: a greyscale base with the colour version clipped to a
+   circle that tracks the pointer and blooms open on hover. Ported from the
+   reference portfolio's About portrait, including its 1.5s spring.
+   ========================================================================== */
+@layer components {
+  .por {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: 0.75rem;
+    border: 1px solid rgb(var(--c-line) / 0.15);
+    background-color: #0e0e0e;
+  }
+
+  .por img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* --px / --py are written from the pointer; they default to the centre. */
+  .por .p-col {
+    clip-path: circle(0px at var(--px, 50%) var(--py, 50%));
+    transition: clip-path 1.5s var(--spring);
+  }
+
+  @media (hover: hover) {
+    .por:hover .p-col {
+      clip-path: circle(80% at var(--px, 50%) var(--py, 50%));
+    }
+  }
+
+  /*
+    Touch pointers cannot hover, so they simply get the colour photograph
+    rather than a tap target that exists only to trigger a decorative effect.
+  */
+  @media (hover: none) {
+    .por .p-col {
+      clip-path: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .por .p-col {
+      clip-path: none;
+      transition: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   9. Splash screen
+   Shown once per session on first load. Built from the site's own vocabulary
+   — bracketed mono metadata, the Archivo display face settling its variable
+   axes, the amber highlighter stroke and a teal progress bar — rather than
+   the handwriting-signature idea from the ahmeddoban reference.
+
+   Every animation uses `both` fill, so the panel reaches its finished
+   (hidden) state even if a throttled timer never unmounts it. Nothing here
+   depends on JavaScript to disappear.
+   ========================================================================== */
+@layer components {
+  .splash {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    background-color: rgb(var(--c-bg));
+    animation: sp-exit 0.55s var(--spring) both;
+    animation-delay: 1.6s;
+  }
+
+  .splash-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0 1.5rem;
+    text-align: center;
+    animation: sp-inner-out 0.35s var(--spring) both;
+    animation-delay: 1.5s;
+  }
+
+  /* Bracketed location line */
+  .sp-eyebrow {
+    animation: sp-fade 0.5s var(--spring) both;
+    animation-delay: 0.1s;
+  }
+
+  /* One span per character, rising on its own delay */
+  .sp-ch {
+    display: inline-block;
+    animation: sp-char 0.62s var(--spring) both;
+    animation-delay: calc(0.2s + var(--i, 0) * 38ms);
+  }
+
+  .sp-role {
+    animation: sp-fade 0.6s var(--spring) both;
+    animation-delay: 0.95s;
+  }
+
+  .sp-bar {
+    position: relative;
+    height: 2px;
+    width: 11rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background-color: rgb(var(--c-line) / 0.18);
+    animation: sp-fade 0.4s var(--spring) both;
+    animation-delay: 0.2s;
+  }
+
+  .sp-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform-origin: left center;
+    background-color: rgb(var(--c-accent));
+    animation: sp-fill 1.3s var(--spring) both;
+    animation-delay: 0.25s;
+  }
+
+  /* Decorative, and the page underneath renders regardless. */
+  @media (prefers-reduced-motion: reduce) {
+    .splash {
+      display: none;
+    }
+  }
+}
+
+/*
+  While the splash is up, the hero's own entrance is pushed back so it plays
+  as the curtain lifts instead of finishing unseen behind it. Scoped to
+  `main` so the splash's own .vf / .rise / .hl-auto are untouched.
+*/
+html.is-splashing main .rise,
+html.is-splashing main .rise-in {
+  animation-delay: calc(var(--rise-delay, 0ms) + 1750ms);
+}
+
+html.is-splashing main .hl-auto::after {
+  animation-delay: calc(var(--hl-delay, 0.35s) + 1750ms);
+}
+
+html.is-splashing main .vf {
+  animation-delay: 1750ms;
+}
+
+@keyframes sp-fade {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sp-char {
+  from {
+    opacity: 0;
+    transform: translateY(0.55em) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sp-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes sp-inner-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+}
+
+/* A curtain lift. transform rather than clip-path so it cannot fail, and
+   visibility flips at the end so the panel stops intercepting pointers. */
+@keyframes sp-exit {
+  from {
+    transform: translateY(0);
+    visibility: visible;
+  }
+  99% {
+    visibility: visible;
+  }
+  to {
+    transform: translateY(-100%);
+    visibility: hidden;
+  }
+}

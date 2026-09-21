@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Ali Al-Hamoli">
+  <rect width="64" height="64" rx="14" fill="#0e0e0e"/>
+  <path d="M14 46 L24 18 h5 l10 28 h-6.2 l-1.9-5.6h-9.9L19.1 46z M23.2 33.6h6.4L26.4 24z"
+        fill="#f3efe4"/>
+  <path d="M43 18h5.6v22.6H58V46H43z" fill="#2dd4bf"/>
+</svg>
